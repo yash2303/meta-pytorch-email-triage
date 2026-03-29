@@ -1,0 +1,70 @@
+name: email-triage-env
+version: "1.0.0"
+description: >
+  An RL environment where an AI agent triages incoming emails by classifying
+  category, priority, and department. Supports 3 tasks (easy/medium/hard)
+  with weighted partial-credit scoring.
+author: Yashasvi Galav
+license: BSD-3-Clause
+
+environment:
+  type: http
+  port: 8000
+  endpoints:
+    reset: /reset
+    step: /step
+    state: /state
+    health: /health
+
+tasks:
+  - name: basic_triage
+    difficulty: easy
+    description: "Clear-cut emails with obvious category, priority, and department."
+    num_emails: 5
+
+  - name: ambiguous_triage
+    difficulty: medium
+    description: "Emails requiring inference — intent may not match surface wording."
+    num_emails: 5
+
+  - name: complex_triage
+    difficulty: hard
+    description: "Multi-topic emails, edge cases, urgency buried in context."
+    num_emails: 5
+
+action_space:
+  type: EmailTriageAction
+  fields:
+    category:
+      type: string
+      enum: [billing, technical, hr, sales, general]
+    priority:
+      type: string
+      enum: [low, medium, high, critical]
+    department:
+      type: string
+      enum: [engineering, finance, hr, sales, support]
+    reasoning:
+      type: string
+
+observation_space:
+  type: EmailTriageObservation
+  fields:
+    email_subject: { type: string }
+    email_body: { type: string }
+    email_sender: { type: string }
+    email_metadata: { type: object }
+    task_name: { type: string }
+    task_difficulty: { type: string }
+    feedback: { type: string }
+    current_score: { type: float }
+    emails_remaining: { type: integer }
+    done: { type: boolean }
+    reward: { type: float, nullable: true }
+
+reward:
+  range: [0.0, 1.0]
+  description: >
+    Weighted average across emails.
+    Category match: 0.4 weight. Priority match: 0.3 weight (partial credit
+    for adjacent levels). Department match: 0.3 weight.
