@@ -100,7 +100,7 @@ python inference.py
 
 ### Docker
 ```bash
-docker build -f server/Dockerfile -t email-triage-env .
+docker build -t email-triage-env .
 docker run -p 8000:8000 email-triage-env
 ```
 
